@@ -27,7 +27,7 @@ class CacheLRU {
   - Linked List + Hash Table, gives time complexity O(1) (contant time).
 */
 void CacheLRU::CacheLRUFill(int element) {
-  list<int>::iterator it = find(CacheMemory.begin(), CacheMemory.end(), element);
+  auto it = find(CacheMemory.begin(), CacheMemory.end(), element);
   if(ref_hashtable_.find(element)== ref_hashtable_.end()) {
     if(ref_hashtable_.size() == CacheSize_){
       int pop_element = CacheMemory.back();
@@ -42,14 +42,14 @@ void CacheLRU::CacheLRUFill(int element) {
 }
 
 void CacheLRU::DisplayCacheElements() {
-  for(auto it = CacheMemory.begin(); it != CacheMemory.end(); it++) {
-    cout << *it <<" ";
+  for(int & it : CacheMemory) {
+    cout << it <<" ";
   }
   cout << endl;
 }
 
 
-int main() {
+auto main() -> int {
   // create instance of class.
   CacheLRU cache_lru(3);
   
