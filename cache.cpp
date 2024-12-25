@@ -1,71 +1,66 @@
 #include <iostream>
 #include <list>
-#include<unordered_map>
-#include <algorithm>
+#include <unordered_map>
 #include <chrono>
 using namespace std;
 using namespace std::chrono;  // to measure time.
 
+class LRUCache {
+    int maxCacheSize_;                         // Cache size limit
+    list<int> cacheOrder_;                     // To store cache elements in the order they are used
+    unordered_map<int, list<int>::iterator> cacheMap_;  // To quickly lookup elements in cache
 
-class CacheLRU {
-  int CacheSize_;
-  list<int> CacheMemory;
-  unordered_map<int, list<int>::iterator> ref_hashtable_;
-  public:
-    void CacheLRUFill(int element);
-    void DisplayCacheElements();
-    CacheLRU (int size) {
-      CacheSize_ = size;
-    }
+public:
+    explicit LRUCache(int maxSize) : maxCacheSize_(maxSize) {}
+
+    void accessCache(int element);
+    void displayCache() const;
 };
 
-/*
-  @ CacheLRUFill().
-  - If element is new, add it to cache.
-  - If element is already present, move it to the front.
-  - If the cache is full, remove the last element from cache.
-  - Linked List + Hash Table, gives time complexity O(1) (contant time).
-*/
-void CacheLRU::CacheLRUFill(int element) {
-  auto it = find(CacheMemory.begin(), CacheMemory.end(), element);
-  if(ref_hashtable_.find(element)== ref_hashtable_.end()) {
-    if(ref_hashtable_.size() == CacheSize_){
-      int pop_element = CacheMemory.back();
-      CacheMemory.pop_back();
-      ref_hashtable_.erase(pop_element);
+void LRUCache::accessCache(int element) {
+    // Check if the element is already in the cache
+    if (cacheMap_.find(element) != cacheMap_.end()) {
+        // Remove the element from its current position
+        cacheOrder_.erase(cacheMap_[element]);
     }
-  } else {
-    CacheMemory.erase(ref_hashtable_.find(element)->second);
-  }
-  CacheMemory.push_front(element);
-  ref_hashtable_[element] = CacheMemory.begin();
+
+    // Add the element to the front (most recently used)
+    cacheOrder_.push_front(element);
+    cacheMap_[element] = cacheOrder_.begin();
+
+    // If the cache exceeds the maximum size, remove the least recently used element (back of the list)
+    if (cacheMap_.size() > maxCacheSize_) {
+        int leastUsedElement = cacheOrder_.back();
+        cacheOrder_.pop_back();
+        cacheMap_.erase(leastUsedElement);
+    }
 }
 
-void CacheLRU::DisplayCacheElements() {
-  for(int & it : CacheMemory) {
-    cout << it <<" ";
-  }
-  cout << endl;
+void LRUCache::displayCache() const {
+    for (const int& element : cacheOrder_) {
+        cout << element << " ";
+    }
+    cout << endl;
 }
-
 
 auto main() -> int {
-  // create instance of class.
-  CacheLRU cache_lru(3);
-  
-  // Add cache elements. 
-  auto start = high_resolution_clock::now();
-  cache_lru.CacheLRUFill(4);
-  cache_lru.CacheLRUFill(5);
-  cache_lru.CacheLRUFill(6);
-  cache_lru.CacheLRUFill(5);
-  cache_lru.CacheLRUFill(4);
-  cache_lru.CacheLRUFill(1);
-  cache_lru.CacheLRUFill(3);
-  auto stop = high_resolution_clock::now();
-  auto duration = duration_cast<microseconds>(stop - start);
-  cout << "Time taken by function: " << duration.count() << " microseconds" << endl;
-  // Display cache elements.
-  cache_lru.DisplayCacheElements();
-  return 0;
+    // Create an instance of the LRUCache with a max size of 3
+    LRUCache lruCache(3);
+
+    // Simulate accessing cache elements
+    auto start = high_resolution_clock::now();
+    lruCache.accessCache(4);
+    lruCache.accessCache(5);
+    lruCache.accessCache(6);
+    lruCache.accessCache(5);
+    lruCache.accessCache(4);
+    lruCache.accessCache(1);
+    lruCache.accessCache(3);
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    cout << "Time taken by function: " << duration.count() << " microseconds" << endl;
+
+    // Display cache elements
+    lruCache.displayCache();
+    return 0;
 }
